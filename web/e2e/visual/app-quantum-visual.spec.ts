@@ -35,4 +35,34 @@ test.describe('Quantum dashboard cards', () => {
     await expectCardScreenshot(qubitGridCard, 'app-quantum-qubit-grid-card.png')
     await expectCardScreenshot(histogramCard, 'app-quantum-histogram-card.png')
   })
+
+  test('circuit viewer renders zoom controls and small zoom levels visibly shrink the diagram', async ({ page }) => {
+    await setupQuantumPage(page)
+
+    const circuitCard = page
+      .locator('h2:has-text("Quantum Circuit")')
+      .first()
+      .locator('xpath=ancestor::*[@data-card-type][1]')
+
+    await expect(circuitCard).toBeAttached({ timeout: CARD_VISIBLE_TIMEOUT_MS })
+    await circuitCard.scrollIntoViewIfNeeded()
+    await expect(circuitCard).toBeVisible({ timeout: CARD_VISIBLE_TIMEOUT_MS })
+
+    // All eight default zoom buttons must be present.
+    const zoomLevels = [15, 20, 25, 35, 50, 65, 85, 100, 125, 150]
+    for (const pct of zoomLevels) {
+      await expect(circuitCard.getByRole('button', { name: `${pct}%`, exact: true })).toBeVisible()
+    }
+
+    // Default 100%: capture baseline.
+    await expectCardScreenshot(circuitCard, 'app-quantum-circuit-card-zoom-100.png')
+
+    // 25%: must visibly shrink (regression check for font-size clamping bug).
+    await circuitCard.getByRole('button', { name: '25%', exact: true }).click()
+    await expectCardScreenshot(circuitCard, 'app-quantum-circuit-card-zoom-25.png')
+
+    // 15%: smallest level — must also visibly differ from 25%.
+    await circuitCard.getByRole('button', { name: '15%', exact: true }).click()
+    await expectCardScreenshot(circuitCard, 'app-quantum-circuit-card-zoom-15.png')
+  })
 })
