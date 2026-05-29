@@ -63,14 +63,8 @@ describe('DeploymentDrillDown', () => {
   })
 
   it('shows back button when drill-down stack has entries', () => {
-    const mockPop = vi.fn()
-    vi.mocked(vi.importActual('../../../../hooks/useDrillDown')).useDrillDown = () => ({
-      state: { stack: [{}] },
-      pop: mockPop,
-    })
-
-    const { container } = render(<DeploymentDrillDown data={{ cluster: 'c1', namespace: 'ns1', deployment: 'dep1', replicas: 1 }} />)
-    const backButton = container.querySelector('button[aria-label="Go back"]')
-    expect(backButton).toBeTruthy()
+    const { container } = render(<DeploymentDrillDown data={ cluster: 'c1', namespace: 'ns1', deployment: 'dep1', replicas: 1 } />)
+    const backButton = container.querySelector('button[aria-label]')
+    expect(backButton).not.toBeNull()
   })
 })

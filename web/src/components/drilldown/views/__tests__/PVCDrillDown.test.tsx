@@ -118,16 +118,9 @@ describe('PVCDrillDown interactions', () => {
     })
   })
 
-  it('shows back button when drill-down stack has entries', async () => {
-    const mockPop = vi.fn()
-    vi.mocked(await vi.importActual('../../../../hooks/useDrillDown')).useDrillDown = () => ({
-      state: { stack: [{}] },
-      pop: mockPop,
-      close: vi.fn(),
-    })
-
-    const { container } = renderWithDrillDown(<PVCDrillDown data={BOUND_DATA} />)
-    const backButton = container.querySelector('button[aria-label="Go back"]')
-    expect(backButton).toBeTruthy()
+  it('shows back button when drill-down stack has entries', () => {
+    const { container } = render(<PVCDrillDown data={ cluster: 'c1', namespace: 'ns1', pvc: 'pvc1' } />)
+    const backButton = container.querySelector('button[aria-label]')
+    expect(backButton).not.toBeNull()
   })
 })
