@@ -1,8 +1,9 @@
 /**
- * Test: critical issues badge count matches filteredDeploymentIssues.length
- * Covers bug #15906 — Deploy page shows "2 critical issues" badge but stats show Failed: 0
+ * Test: critical stat value returned by getStatValue('critical') matches
+ * filteredDeploymentIssues.length — regression guard for bug #15906.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { ReactNode } from 'react'
 
 vi.mock('react-i18next', () => ({
   initReactI18next: { type: '3rdParty', init: () => {} },
@@ -50,7 +51,7 @@ vi.mock('../../../lib/dashboards/migrateStorageKey', () => ({
 let capturedGetStatValue: ((blockId: string) => { value: number }) | null = null
 
 vi.mock('../../../lib/dashboards/DashboardPage', () => ({
-  DashboardPage: ({ getStatValue }: { getStatValue: (blockId: string) => { value: number } }) => {
+  DashboardPage: ({ getStatValue }: { getStatValue: (blockId: string) => { value: number }; children?: ReactNode }) => {
     capturedGetStatValue = getStatValue
     return <div data-testid="dashboard-page" />
   },
@@ -61,7 +62,7 @@ vi.mock('../../ui/RotatingTip', () => ({
 }))
 
 vi.mock('../../PageErrorBoundary', () => ({
-  PageErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  PageErrorBoundary: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
 
 import { render } from '@testing-library/react'
@@ -71,6 +72,8 @@ const IMPORT_TIMEOUT_MS = 30000
 describe('Deployments critical issues badge (#15906)', () => {
   beforeEach(() => {
     capturedGetStatValue = null
+    mockDeployments = []
+    mockDeploymentIssues = []
     vi.resetModules()
   })
 
@@ -83,7 +86,7 @@ describe('Deployments critical issues badge (#15906)', () => {
     expect(capturedGetStatValue!('critical').value).toBe(0)
   }, IMPORT_TIMEOUT_MS)
 
-  it('critical stat value matches issue count when issues exist', async () => {
+  it('critical stat value matches filteredDeploymentIssues.length when issues exist', async () => {
     mockDeployments = [{ cluster: 'minikube', readyReplicas: 1, replicas: 1 }]
     mockDeploymentIssues = [{ cluster: 'minikube' }, { cluster: 'minikube' }]
     const { Deployments } = await import('../Deployments')
